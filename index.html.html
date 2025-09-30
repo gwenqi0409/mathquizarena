@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Math Quiz Arena</title>
+  <style>
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      text-align: center; 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+    }
+    .quiz-container { 
+      max-width: 500px; 
+      margin: 40px auto; 
+      padding: 30px; 
+      background: #fff; 
+      border-radius: 16px; 
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2); 
+    }
+    h1 { 
+      color: #333; 
+      margin-bottom: 30px;
+      font-size: 2.2em;
+    }
+    .question { 
+      font-size: 20px; 
+      margin: 25px 0; 
+      font-weight: 600;
+      color: #2c3e50;
+    }
+    .btn { 
+      display: block; 
+      width: 100%; 
+      margin: 10px 0; 
+      padding: 12px; 
+      border: none; 
+      border-radius: 10px; 
+      background: #3498db; 
+      color: white; 
+      font-size: 16px; 
+      cursor: pointer; 
+      transition: all 0.3s ease;
+    }
+    .btn:hover { 
+      background: #2980b9; 
+      transform: translateY(-2px);
+    }
+    .btn.correct { background: #27ae60; }
+    .btn.wrong { background: #e74c3c; }
+    #next-btn { 
+      background: #9b59b6; 
+      display: none; 
+      margin-top: 20px;
+      padding: 12px 30px;
+      border-radius: 25px;
+      font-weight: bold;
+    }
+    #next-btn:hover { background: #8e44ad; }
+    #score { 
+      font-size: 24px; 
+      margin-top: 25px; 
+      font-weight: bold; 
+      color: #2c3e50;
+    }
+    .progress {
+      margin: 20px 0;
+      height: 6px;
+      background: #ecf0f1;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      background: #2ecc71;
+      transition: width 0.3s ease;
+    }
+  </style>
+</head>
+<body>
+  <div class="quiz-container">
+    <h1>Math Quiz Arena 🏆</h1>
+    <div class="progress">
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
+    <div id="question" class="question"></div>
+    <div id="answer-buttons"></div>
+    <button id="next-btn">Next Question</button>
+    <div id="score"></div>
+  </div>
+
+  <script>
+    const questions = [
+      { question: "What is the derivative of x²?", answers: ["2x", "x", "x²", "2"], correct: "2x" },
+      { question: "If P(A)=0.5 and P(B)=0.4, what is P(A∩B) if independent?", answers: ["0.9", "0.2", "0.1", "0.4"], correct: "0.2" },
+      { question: "Solve: ∫2x dx", answers: ["x² + C", "2x + C", "ln(x) + C", "x³/3 + C"], correct: "x² + C" },
+      { question: "What is the value of lim(x→0) sin(x)/x?", answers: ["0", "1", "∞", "undefined"], correct: "1" },
+      { question: "Solve: 3x + 7 = 16", answers: ["x = 3", "x = 4", "x = 2", "x = 5"], correct: "x = 3" }
+    ];
+
+    const questionElement = document.getElementById("question");
+    const answerButtons = document.getElementById("answer-buttons");
+    const nextButton = document.getElementById("next-btn");
+    const scoreElement = document.getElementById("score");
+    const progressBar = document.getElementById("progress-bar");
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+
+    function startQuiz() {
+      currentQuestionIndex = 0;
+      score = 0;
+      nextButton.innerHTML = "Next Question";
+      showQuestion();
+      updateProgress();
+    }
+
+    function showQuestion() {
+      resetState();
+      let currentQuestion = questions[currentQuestionIndex];
+      questionElement.innerHTML = currentQuestion.question;
+      
+      currentQuestion.answers.forEach(answer => {
+        const button = document.createElement("button");
+        button.innerHTML = answer;
+        button.classList.add("btn");
+        button.addEventListener("click", () => selectAnswer(button, answer, currentQuestion.correct));
+        answerButtons.appendChild(button);
+      });
+    }
+
+    function resetState() {
+      nextButton.style.display = "none";
+      while (answerButtons.firstChild) {
+        answerButtons.removeChild(answerButtons.firstChild);
+      }
+    }
+
+    function selectAnswer(button, answer, correct) {
+      const allButtons = answerButtons.querySelectorAll('.btn');
+      allButtons.forEach(btn => {
+        btn.disabled = true;
+        if (btn.innerHTML === correct) {
+          btn.classList.add('correct');
+        }
+      });
+
+      if (answer === correct) {
+        score++;
+        button.classList.add('correct');
+      } else {
+        button.classList.add('wrong');
+      }
+      
+      nextButton.style.display = "block";
+      updateProgress();
+    }
+
+    function updateProgress() {
+      const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+      progressBar.style.width = progress + '%';
+    }
+
+    function showScore() {
+      resetState();
+      questionElement.innerHTML = `🎉 Quiz Completed! <br>You scored ${score} out of ${questions.length}!`;
+      scoreElement.innerHTML = `Your percentage: ${Math.round((score/questions.length)*100)}%`;
+      nextButton.innerHTML = "Play Again";
+      nextButton.style.display = "block";
+      progressBar.style.width = '100%';
+    }
+
+    function handleNextButton() {
+      currentQuestionIndex++;
+      if (currentQuestionIndex < questions.length) {
+        showQuestion();
+      } else {
+        showScore();
+      }
+    }
+
+    nextButton.addEventListener("click", () => {
+      if (currentQuestionIndex < questions.length) {
+        handleNextButton();
+      } else {
+        startQuiz();
+      }
+    });
+
+    startQuiz();
+  </script>
+</body>
+</html>
